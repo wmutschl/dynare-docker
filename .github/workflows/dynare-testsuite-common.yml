@@ -16,6 +16,9 @@ on:
       dynare-version:
         required: true
         type: string
+      testsuite:
+        required: true
+        type: string
     secrets:
       matlab-licensefile-base64:
         required: true
@@ -28,6 +31,7 @@ jobs:
       MATLAB_LICENSEFILE_BASE64: ${{ secrets.matlab-licensefile-base64 }}
       MAC_ADDRESS_FOR_LICENSE: "A6-7E-1A-F4-9A-92"
       USERNAME_IN_CONTAINER: "matlab"
+      TESTSUITE: ${{ inputs.testsuite }}
 
     steps:
       - name: Pull Dynare Docker container
@@ -51,8 +55,8 @@ jobs:
           6.*) \
             cd /home/matlab/dynare/tests/estimation && matlab -batch 'dynare fs2000 console'; \
             cd /home/matlab/dynare && \
-            meson test -C build-matlab;; \
+            meson test -C build-${{ env.TESTSUITE }};; \
           *) \
             cd /home/matlab/dynare/tests && \
-            make check-matlab -j4;; \
+            make check-${{ env.TESTSUITE }} -j4;; \
           esac"

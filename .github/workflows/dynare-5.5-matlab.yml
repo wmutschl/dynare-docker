@@ -11,5 +11,6 @@ jobs:
     uses: ./.github/workflows/dynare-testsuite-common.yml
     with:
       dynare-version: "5.5"
+      testsuite: "matlab"
     secrets:
       matlab-licensefile-base64: ${{ secrets.MATLAB_LICENSEFILE_BASE64 }}

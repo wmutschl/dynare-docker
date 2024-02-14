@@ -1,7 +1,9 @@
 # Dynare Docker Containers
 
 [![Dynare 6.0](../../actions/workflows/dynare-6.0-matlab.yml/badge.svg)](../../actions/workflows/dynare-6.0-matlab.yml)
+[![Dynare 6.0](../../actions/workflows/dynare-6.0-octave.yml/badge.svg)](../../actions/workflows/dynare-6.0-octave.yml)
 [![Dynare 5.5](../../actions/workflows/dynare-5.5-matlab.yml/badge.svg)](../../actions/workflows/dynare-5.5-matlab.yml)
+[![Dynare 5.5](../../actions/workflows/dynare-5.5-octave.yml/badge.svg)](../../actions/workflows/dynare-5.5-octave.yml)
 
 This repository automates the testing of Dynare versions within Docker containers, ensuring reliability and stability across different environments.
 
