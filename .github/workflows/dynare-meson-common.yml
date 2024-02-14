@@ -37,4 +37,4 @@ jobs:
           echo $MATLAB_LICENSEFILE_BASE64 | base64 --decode > ${{ github.workspace }}/license.lic
       
       - name: Run MATLAB testsuite in Docker container
-        run: docker run --rm --shm-size=512M --mac-address ${{ env.MAC_ADDRESS_FOR_LICENSE }} -v ${{ github.workspace }}/license.lic:/licenses/license.lic:ro -e MLM_LICENSE_FILE=/licenses/license.lic docker.io/dynare/dynare:${{ env.DYNARE_VERSION }} /bin/bash -c "cd /home/matlab/dynare && meson test -C build-matlab"
+        run: docker run --rm --shm-size=512M --mac-address ${{ env.MAC_ADDRESS_FOR_LICENSE }} -v ${{ github.workspace }}/license.lic:/licenses/license.lic:ro -e MLM_LICENSE_FILE=/licenses/license.lic docker.io/dynare/dynare:${{ env.DYNARE_VERSION }} /bin/bash -c "cd /home/matlab/dynare/tests/estimation && matlab -batch 'dynare fs2000' && cd /home/matlab/dynare && meson test -C build-matlab"
