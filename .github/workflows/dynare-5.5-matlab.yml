@@ -1,4 +1,4 @@
-name: Dynare 5.5 with MATLAB R2023b
+name: Dynare 5.5 MATLAB R2023b
 
 on:
   push:
