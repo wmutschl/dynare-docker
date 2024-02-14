@@ -44,6 +44,7 @@ jobs:
           --mac-address ${{ env.MAC_ADDRESS_FOR_LICENSE }} \
           -v ${{ github.workspace }}/license.lic:/licenses/license.lic:ro \
           -e MLM_LICENSE_FILE=/licenses/license.lic \
+          -e TERM=xterm-256color \
           docker.io/dynare/dynare:${{ env.DYNARE_VERSION }} \
           /bin/bash -c "\
           case '${{ env.DYNARE_VERSION }}' in \
