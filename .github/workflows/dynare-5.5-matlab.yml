@@ -8,7 +8,7 @@ on:
 
 jobs:
   dynare_5_5_matlab_r2023b:
-    uses: ./.github/workflows/dynare-make-common.yml
+    uses: ./.github/workflows/dynare-testsuite-common.yml
     with:
       dynare-version: "5.5"
     secrets:
