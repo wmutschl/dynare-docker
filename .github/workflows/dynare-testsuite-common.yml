@@ -1,5 +1,8 @@
 name: Common Dynare testsuite workflow
 
+################
+# LICENSE FILE #
+################
 # You need to provide a valid license to the container (the different options are described here: https://de.mathworks.com/help/cloudcenter/ug/matlab-container-on-docker-hub.html).
 # This is a recommended way:
 # 1) Check whether your license allows for cloud and container usage: https://mathworks.com/help/install/license/licensing-for-mathworks-products-running-on-the-cloud.html
@@ -9,6 +12,13 @@ name: Common Dynare testsuite workflow
 # 3) Edit the license.lic file with a text editor and remove all the blocks except for MATLAB, Distrib_Computing_Toolbox, GADS_Toolbox, Optimization_Toolbox, Statistics_Toolbox, Symbolic_Toolbox, Control_Toolbox, Econometrics_Toolbox.
 # 4) Use base64 to encode the stripped down file into a Base64 string: base64 -i license.lic -o license.lic.base64 as described here https://docs.github.com/en/actions/security-guides/encrypted-secrets#storing-base64-binary-blobs-as-secrets
 # 5) Copy the content of license.lic.base64 and paste it as a Github secret named MATLAB_LICENSEFILE_BASE64.
+
+###############
+# WORKAROUNDS #
+###############
+# Dynare 6.0
+#   - the mode file created by estimation/fs2000.mod is used by other test, so we need to run this first to solve possible race conditions
+# Dynare 5.5
 
 on:
   workflow_call:

@@ -28,7 +28,7 @@ Click on the badges at the top for real-time status reports of the latest test r
 
 ## Contributing
 
-Contributions to improve the testing workflows or to extend the support for more Dynare versions are welcome. Please refer to the [contribution guidelines](https://git.dynare.org/Dynare/dynare/-/blob/master/CONTRIBUTING.md) for more information.
+Contributions to improve the Docker containers or testing workflows are welcome. Please refer to the [contribution guidelines](https://git.dynare.org/Dynare/dynare/-/blob/master/CONTRIBUTING.md) for more information.
 
 ## Support
 
