@@ -1,0 +1,15 @@
+name: Dynare 5.5 with MATLAB R2023b
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  dynare_5_5_matlab_r2023b:
+    uses: ./.github/workflows/dynare-make-common.yml
+    with:
+      dynare-version: "5.5"
+    secrets:
+      matlab-licensefile-base64: ${{ secrets.MATLAB_LICENSEFILE_BASE64 }}
