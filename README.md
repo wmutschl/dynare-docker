@@ -1,30 +1,34 @@
 # Dynare Docker Containers
+[Dynare](https://www.dynare.org) is a free software suite designed for analyzing and solving dynamic economic models. It can perform simulations, estimation, forecasting, and policy analysis. 
+The Dynare team provides Docker containers for running Dynare on both MATLAB and Octave and publishes them on [Docker Hub](https://hub.docker.com/r/dynare/dynare). For more details on the containers, visit the [Dynare Docker Guide](https://git.dynare.org/Dynare/dynare/-/blob/master/scripts/docker/README.md).
 
-[![Dynare 6.0](../../actions/workflows/dynare-6.0-matlab.yml/badge.svg)](../../actions/workflows/dynare-6.0-matlab.yml)
-[![Dynare 6.0](../../actions/workflows/dynare-6.0-octave.yml/badge.svg)](../../actions/workflows/dynare-6.0-octave.yml)
-[![Dynare 5.5](../../actions/workflows/dynare-5.5-matlab.yml/badge.svg)](../../actions/workflows/dynare-5.5-matlab.yml)
-[![Dynare 5.5](../../actions/workflows/dynare-5.5-octave.yml/badge.svg)](../../actions/workflows/dynare-5.5-octave.yml)
+This repository automates the building, pushing and testing of Dynare Docker containers using GitHub Actions workflows.
 
-This repository automates the testing of Dynare versions within Docker containers, ensuring reliability and stability across different environments.
+## Docker builds
 
-## About Dynare
+| Dynare 6 | [![Dynare 6.0 Docker](../../actions/workflows/docker-dynare-6.0.yml/badge.svg)](../../actions/workflows/docker-dynare-6.0.yml) |
+|----------------|-----|
 
-[Dynare](https://www.dynare.org) is a free software suite designed for analyzing and solving dynamic economic models. It can perform simulations, estimation, forecasting, and policy analysis.
+| Dynare 5 | [![Dynare 5.5 Docker](../../actions/workflows/docker-dynare-5.5.yml/badge.svg)](../../actions/workflows/docker-dynare-5.5.yml) | [![Dynare 5.4 Docker](../../actions/workflows/docker-dynare-5.4.yml/badge.svg)](../../actions/workflows/docker-dynare-5.4.yml) | [![Dynare 5.3 Docker](../../actions/workflows/docker-dynare-5.3.yml/badge.svg)](../../actions/workflows/docker-dynare-5.3.yml) | [![Dynare 5.2 Docker](../../actions/workflows/docker-dynare-5.2.yml/badge.svg)](../../actions/workflows/docker-dynare-5.2.yml) | [![Dynare 5.1 Docker](../../actions/workflows/docker-dynare-5.1.yml/badge.svg)](../../actions/workflows/docker-dynare-5.1.yml) | [![Dynare 5.0 Docker](../../actions/workflows/docker-dynare-5.0.yml/badge.svg)](../../actions/workflows/docker-dynare-5.0.yml) |
+|----------------|-----|-----|-----|-----|-----|-----|
 
-## Docker Containers for Dynare
+| Dynare 4 | [![Dynare 4.6.4 Docker](../../actions/workflows/docker-dynare-4.6.4.yml/badge.svg)](../../actions/workflows/docker-dynare-4.6.4.yml) |
+|----------------|-------|
 
-The Docker containers provide an isolated and consistent environment for running Dynare, facilitating easy deployment and testing across various systems. For more details on the containers, visit the [Dynare Docker Guide](https://git.dynare.org/Dynare/dynare/-/blob/master/scripts/docker/README.md).
+The [Dockerfile](https://git.dynare.org/Dynare/dynare/-/raw/master/scripts/docker/Dockerfile) is curled directly from the master branch of the [Dynare GitLab repository](https://git.dynare.org/Dynare/dynare) and is used to build the Docker containers. The containers are then tagged and pushed to [Docker Hub](https://hub.docker.com/r/dynare/dynare). This process is automated to run on every 21st day of the month.
 
-## Testing Workflows
+## Testing
 
-Currently, this repository contains only GitHub Actions workflows that trigger Dynare's test suite inside the Docker containers.
+| Dynare Version | MATLAB | Octave |
+|----------------|--------|--------|
+| 6.0            | [![Testsuite 6.0 MATLAB](../../actions/workflows/testsuite-dynare-6.0-matlab.yml/badge.svg)](../../actions/workflows/testsuite-dynare-6.0-matlab.yml) | [![Testsuite Dynare 6.0 Octave](../../actions/workflows/testsuite-dynare-6.0-octave.yml/badge.svg)](../../actions/workflows/testsuite-dynare-6.0-octave.yml) |
+| 5.5            | [![Testsuite Dynare 5.5 MATLAB](../../actions/workflows/testsuite-dynare-5.5-matlab.yml/badge.svg)](../../actions/workflows/testsuite-dynare-5.5-matlab.yml) | [![Testsuite Dynare 5.5 Octave](../../actions/workflows/testsuite-dynare-5.5-octave.yml/badge.svg)](../../actions/workflows/testsuite-dynare-5.5-octave.yml) |
 
-### Current Workflows
 
-- **Dynare 6.0**: Automated tests for the Dynare 6.0 Docker container.
-- **Dynare 5.5**: Automated tests for the Dynare 5.5 Docker container.
+Every Monday, the containers are tested using the [Dynare test suite](https://git.dynare.org/Dynare/dynare/-/blob/master/tests). The tests are run on both MATLAB and Octave, and the results are published as GitHub Actions workflows.
+The MATLAB workflows are expected to pass, whereas the ones for Octave may fail due to known issues with the test suite and the base image the containers are built on.
 
-Click on the badges at the top for real-time status reports of the latest test runs. The MATLAB workflows are expected to pass, whereas the ones for Octave may fail due to known issues with the test suite and the base image the containers are built on.
+Click on the badges for real-time status reports of the latest test runs.
 
 ## Contributing
 
