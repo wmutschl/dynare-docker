@@ -16,9 +16,8 @@ name: Common Dynare testsuite workflow
 ###############
 # WORKAROUNDS #
 ###############
-# Dynare 6.0
-#   - the mode file created by estimation/fs2000.mod is used by other test, so we need to run this first to solve possible race conditions
-# Dynare 5.5
+# Dynare 6.0 MATLAB
+# - optimizers/fs2000_102: fails to find the data file for some reason (maybe some race condition), so remove the test from the testsuite (lines 788-791 in meson.build) and run the test manually
 
 on:
   workflow_call:
@@ -69,9 +68,8 @@ jobs:
           /bin/bash -c "\
           case '${{ env.DYNARE_VERSION }}' in \
           6.*) \
-            cd /home/matlab/dynare/tests/estimation && matlab -batch 'dynare fs2000 console'; \
             cd /home/matlab/dynare && \
-            meson test -C build-${{ env.TESTSUITE }};; \
+            sed -i '788,791d' /home/matlab/dynare/meson.build && matlab -batch 'cd tests/estimation; dynare fs2000 console; cd ../optimizers; dynare fs2000_102 console;' && \
             meson test -C build-${{ env.TESTSUITE }} && \
             cp /home/matlab/dynare/build-${{ env.TESTSUITE }}/meson-logs/testlog.txt /home/matlab/artifacts/;; \
           *) \
