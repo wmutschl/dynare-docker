@@ -1,14 +1,16 @@
-name: Dynare 5.5 Octave 6.4.0
+name: 'Testsuite 6.4.0 ' # name will be used in table of badges in README.md
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1' # At 00:00 on Monday
 
 jobs:
   dynare_5_5_octave_6_4_0:
-    uses: ./.github/workflows/dynare-testsuite-common.yml
+    uses: ./.github/workflows/testsuite-dynare-common.yml
     with:
       dynare-version: "5.5"
       testsuite: "octave"

@@ -1,14 +1,16 @@
-name: Dynare 5.5 MATLAB R2023b
+name: 'Testsuite R2023b ' # name will be used in table of badges in README.md
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1' # At 00:00 on Monday
 
 jobs:
   dynare_5_5_matlab_r2023b:
-    uses: ./.github/workflows/dynare-testsuite-common.yml
+    uses: ./.github/workflows/testsuite-dynare-common.yml
     with:
       dynare-version: "5.5"
       testsuite: "matlab"
