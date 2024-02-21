@@ -1,0 +1,19 @@
+name: 'Docker 4.6.4 '
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 21 * *'
+
+jobs:
+  call-common-workflow:
+    uses: ./.github/workflows/docker-dynare-common.yml
+    with:
+      matlab_release: "R2021a"
+      dynare_release: "4.6.4"
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}

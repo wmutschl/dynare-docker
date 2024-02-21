@@ -1,0 +1,46 @@
+name: Common Docker build and push
+
+on:
+  workflow_call:
+    inputs:
+      matlab_release:
+        required: true
+        type: string
+      dynare_release:
+        required: true
+        type: string
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_PASSWORD:
+        required: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Download Dockerfile from Dynare GitLab repository
+        run: |
+          curl -o Dockerfile https://git.dynare.org/Dynare/dynare/-/raw/master/scripts/docker/Dockerfile
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          DATE_TAG=$(date +'%Y-%m-%d')
+          IMAGE_NAME="dynare/dynare:${{ inputs.dynare_release }}"
+          IMAGE_DATE_TAG="${IMAGE_NAME}-${DATE_TAG}"
+          docker build --build-arg MATLAB_RELEASE=${{ inputs.matlab_release }} --build-arg DYNARE_RELEASE=${{ inputs.dynare_release }} -t $IMAGE_NAME -t $IMAGE_DATE_TAG .
+          docker push $IMAGE_NAME
+          docker push $IMAGE_DATE_TAG
+          if [ "${{ inputs.dynare_release }}" = "6.0" ]; then
+            docker tag $IMAGE_NAME dynare/dynare:latest
+            docker push dynare/dynare:latest
+          fi
