@@ -1,4 +1,4 @@
-name: 'Docker 5.4 '
+name: 'Dynare 5.4 '
 
 on:
   push:

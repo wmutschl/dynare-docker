@@ -1,4 +1,4 @@
-name: 'Testsuite 8.4.0 ' # name will be used in table of badges in README.md
+name: 'Testsuite Dynare 6.0 (Octave 8.4.0) '
 
 on:
   push:

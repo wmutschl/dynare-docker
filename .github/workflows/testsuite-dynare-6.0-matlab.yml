@@ -1,4 +1,4 @@
-name: 'Testsuite R2023b ' # name will be used in table of badges in README.md
+name: 'Testsuite Dynare 6.0 (MATLAB R2023b) '
 
 on:
   push:
