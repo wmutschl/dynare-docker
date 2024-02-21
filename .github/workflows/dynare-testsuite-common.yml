@@ -46,17 +46,23 @@ jobs:
     steps:
       - name: Pull Dynare Docker container
         run: docker pull docker.io/dynare/dynare:${{ env.DYNARE_VERSION }}
-      
+
       - name: Decode base64 MATLAB license file
         run: |
           echo $MATLAB_LICENSEFILE_BASE64 | base64 --decode > ${{ github.workspace }}/license.lic
-      
-      - name: Run Dynare with MATLAB testsuite in Docker container
+
+      - name: Prepare artifacts directory
+        run: |
+          mkdir -p ${{ github.workspace }}/artifacts
+          chmod -R 777 ${{ github.workspace }}/artifacts
+
+      - name: Run Dynare testsuite in Docker container
         run: |
           docker run --rm \
           --shm-size=512M \
           --mac-address ${{ env.MAC_ADDRESS_FOR_LICENSE }} \
           -v ${{ github.workspace }}/license.lic:/licenses/license.lic:ro \
+          -v ${{ github.workspace }}/artifacts:/home/matlab/artifacts \
           -e MLM_LICENSE_FILE=/licenses/license.lic \
           -e TERM=xterm-256color \
           docker.io/dynare/dynare:${{ env.DYNARE_VERSION }} \
@@ -66,7 +72,23 @@ jobs:
             cd /home/matlab/dynare/tests/estimation && matlab -batch 'dynare fs2000 console'; \
             cd /home/matlab/dynare && \
             meson test -C build-${{ env.TESTSUITE }};; \
+            meson test -C build-${{ env.TESTSUITE }} && \
+            cp /home/matlab/dynare/build-${{ env.TESTSUITE }}/meson-logs/testlog.txt /home/matlab/artifacts/;; \
           *) \
             cd /home/matlab/dynare/tests && \
-            make check-${{ env.TESTSUITE }} -j4;; \
+            make check-${{ env.TESTSUITE }} -j4 && \
+            if [ \"${{ env.TESTSUITE }}\" = 'matlab' ]; then \
+              find . -type f \( -name '*.m.log' -o -name '*.m.trs' -o -name '*.jnl' \) -exec sh -c 'mkdir -p \"/home/matlab/artifacts/\$(dirname {})\"; cp {} \"/home/matlab/artifacts/{}\"' \; && \
+              cp run_test_matlab_output.txt /home/matlab/artifacts/; \
+            fi && \
+            if [ \"${{ env.TESTSUITE }}\" = 'octave' ]; then \
+              find . -type f \( -name '*.o.log' -o -name '*.o.trs' -o -name '*.jnl' \) -exec sh -c 'mkdir -p \"/home/matlab/artifacts/\$(dirname {})\"; cp {} \"/home/matlab/artifacts/{}\"' \; && \
+              cp run_test_octave_output.txt /home/matlab/artifacts/; \
+            fi;; \
           esac"
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynare-artifacts-${{ env.DYNARE_VERSION }}
+          path: ${{ github.workspace }}/artifacts/
