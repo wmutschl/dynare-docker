@@ -1,9 +1,6 @@
 name: 'Testsuite Dynare 4.6.4 (Octave 5.2.0) '
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * 1' # At 00:00 on Monday

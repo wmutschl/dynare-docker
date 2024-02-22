@@ -1,9 +1,6 @@
 name: 'Testsuite Dynare 5.4 (MATLAB R2023a) '
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * 1' # At 00:00 on Monday

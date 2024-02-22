@@ -1,9 +1,6 @@
 name: 'Dynare 5.4 '
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
   schedule:
     - cron: '0 0 21 * *'
