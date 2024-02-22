@@ -86,6 +86,7 @@ jobs:
           esac"
 
       - name: Upload Artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: dynare-artifacts-${{ env.DYNARE_VERSION }}
