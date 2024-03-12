@@ -13,3 +13,4 @@ jobs:
       testsuite: "octave"
     secrets:
       matlab-licensefile-base64: ${{ secrets.MATLAB_LICENSEFILE_BASE64 }}
+      matlab-LNUCreds-info-base64: ${{ secrets.LNUCREDS_INFO_BASE64 }}

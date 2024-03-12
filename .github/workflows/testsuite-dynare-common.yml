@@ -1,10 +1,24 @@
 name: Common Dynare testsuite workflow
 
-################
-# LICENSE FILE #
-################
+####################
+# ONLINE LICENSING #
+####################
+# 1) Check whether your license allows for cloud and container usage: https://mathworks.com/help/install/license/licensing-for-mathworks-products-running-on-the-cloud.html
+# 2) Run the Dynare (or MATLAB base) container with the following command:
+#    docker run --rm -it <image_name> -shell
+# 3) Run inside the container: matlab -licmode onlinelicensing
+#    This will ask you for your MathWorks Account login information. You may additionally be prompted to select a license.
+#    Once you've signed in with your MathWorks Account and MATLAB is ready for a command,
+#    exit MATLAB and restart it to check whether the license is still valid.
+# 4) If the license is valid, copy the content of file /home/matlab/.matlab/MathWorks/MATLAB/LNUCredentials/LNUCreds.info from the container to your host machine.
+# 5) Use base64 to encode the file into a Base64 string: base64 -i LNUCreds.info -o LNUCreds.info.base64 as described here https://docs.github.com/en/actions/security-guides/encrypted-secrets#storing-base64-binary-blobs-as-secrets
+# 6) Copy the content of LNUCreds.info.base64 and paste it as a Github secret named LNUCREDS_INFO_BASE64.
+  
+##############################
+# LICENSE FILE (UNTIL R2023a)#
+##############################
 # You need to provide a valid license to the container (the different options are described here: https://de.mathworks.com/help/cloudcenter/ug/matlab-container-on-docker-hub.html).
-# This is a recommended way:
+# This is a recommended way for versions up to R2023a:
 # 1) Check whether your license allows for cloud and container usage: https://mathworks.com/help/install/license/licensing-for-mathworks-products-running-on-the-cloud.html
 # 2) Generate a license file using MATHWORKS License Center, see Option 2 https://de.mathworks.com/matlabcentral/answers/235126-how-do-i-generate-a-matlab-license-file#answer_190013
 #    The host id is the MAC address used below in the env block, make sure that you pass the same MAC address to the docker run command.
@@ -31,6 +45,9 @@ on:
     secrets:
       matlab-licensefile-base64:
         required: true
+      matlab-LNUCreds-info-base64:
+        required: true
+
 
 jobs:
   testsuite_matlab:
@@ -38,6 +55,7 @@ jobs:
     env:
       DYNARE_VERSION: ${{ inputs.dynare-version }}
       MATLAB_LICENSEFILE_BASE64: ${{ secrets.matlab-licensefile-base64 }}
+      LNUCREDS_INFO_BASE64: ${{ secrets.matlab-LNUCreds-info-base64 }}
       MAC_ADDRESS_FOR_LICENSE: "A6-7E-1A-F4-9A-92"
       USERNAME_IN_CONTAINER: "matlab"
       TESTSUITE: ${{ inputs.testsuite }}
@@ -50,6 +68,10 @@ jobs:
         run: |
           echo $MATLAB_LICENSEFILE_BASE64 | base64 --decode > ${{ github.workspace }}/license.lic
 
+      - name: Decode base64 MATLAB LNUCreds file
+        run: |
+          echo $LNUCREDS_INFO_BASE64 | base64 --decode > ${{ github.workspace }}/LNUCreds.info
+      
       - name: Prepare artifacts directory
         run: |
           mkdir -p ${{ github.workspace }}/artifacts
@@ -60,9 +82,8 @@ jobs:
           docker run --rm \
           --shm-size=512M \
           --mac-address ${{ env.MAC_ADDRESS_FOR_LICENSE }} \
-          -v ${{ github.workspace }}/license.lic:/licenses/license.lic:ro \
+          -v ${{ github.workspace }}/LNUCreds.info:/home/matlab/.matlab/MathWorks/MATLAB/LNUCredentials/LNUCreds.info \
           -v ${{ github.workspace }}/artifacts:/home/matlab/artifacts \
-          -e MLM_LICENSE_FILE=/licenses/license.lic \
           -e TERM=xterm-256color \
           docker.io/dynare/dynare:${{ env.DYNARE_VERSION }} \
           /bin/bash -c "\
