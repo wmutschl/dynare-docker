@@ -116,10 +116,26 @@ jobs:
           products: Symbolic_Math_Toolbox Statistics_and_Machine_Learning_Toolbox Optimization_Toolbox Econometrics_Toolbox Parallel_Computing_Toolbox Control_System_Toolbox Global_Optimization_Toolbox
           cache: true
 
+      # MATLAB R2026a on macOS (Apple silicon) may crash with a segmentation violation while exiting after Dynare has run
+      # (in thread cleanup, after all examples have completed). The examples write a marker file when they all pass,
+      # so that such a crash at exit is reported as a warning rather than as a failure of the examples.
       - name: Run Dynare examples with MATLAB
+        id: examples
+        continue-on-error: true
         uses: matlab-actions/run-command@v2
         with:
-          command: addpath('.github/scripts'); run_dynare_examples(getenv('DYNARE_MATLAB_DIR'));
+          command: addpath('.github/scripts'); run_dynare_examples(getenv('DYNARE_MATLAB_DIR')); fclose(fopen('examples-passed.txt', 'w'));
+
+      - name: Check result of the examples
+        shell: bash
+        run: |
+          if [ ! -f examples-passed.txt ]; then
+            echo "::error::Some Dynare examples failed, see the previous step"
+            exit 1
+          fi
+          if [ "${{ steps.examples.outcome }}" != success ]; then
+            echo "::warning::All Dynare examples passed, but MATLAB did not exit cleanly (e.g. crash at exit), see the previous step"
+          fi
 
   octave-windows:
     needs: setup

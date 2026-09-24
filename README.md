@@ -59,6 +59,8 @@ Docker cannot run macOS containers, and MathWorks provides no MATLAB container i
 | 7.1 | MATLAB R2026a, Octave 11.1.0 | MATLAB R2026a |
 | 7.0 | MATLAB R2025b, Octave 11.1.0 | MATLAB R2025b |
 
+Known problem on macOS: with Dynare 7.2 and MATLAB R2026a on Apple silicon, all examples pass but MATLAB crashes with a segmentation violation while exiting (in thread cleanup, after Dynare has run); the workflow reports this as a warning.
+
 MATLAB is installed with [matlab-actions/setup-matlab](https://github.com/matlab-actions/setup-matlab), which is licensed automatically on GitHub-hosted runners for public repositories. The Dynare package for Windows is compiled for one specific Octave version, which is downloaded from the GNU mirrors. The Dynare package for macOS supports MATLAB only (Octave users on macOS install Dynare with Homebrew, which only provides the latest release and is not tested here).
 
 ### Adding a new Dynare release
