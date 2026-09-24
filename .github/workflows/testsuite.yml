@@ -1,7 +1,8 @@
 name: Dynare testsuite
 
 # Runs the Dynare testsuite inside the published dynare/dynare images (see versions.json).
-# - Octave: GitHub-hosted runners, no license needed
+# - Octave: GitHub-hosted runners, no license needed. For Dynare 7.x the Octave testsuite runs in the Octave-only
+#   images (X.Y-octave), as Dynare 7 cannot be used with the Octave 8.4.0 of the MATLAB-based images.
 # - MATLAB: self-hosted runner with the labels [self-hosted, linux, matlab] that has access to a MATLAB license.
 #   The license is passed to the container via the MLM_LICENSE_FILE secret (e.g. 27000@license-server),
 #   see README.md#self-hosted-runner-for-matlab.
@@ -12,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       dynare:
-        description: 'Images to test: monthly, all, latest, or comma-separated Dynare versions (optionally with MATLAB release)'
+        description: 'Images to test: monthly, all, latest, or comma-separated Dynare versions, optionally with MATLAB release or -octave'
         required: true
         default: 'monthly'
         type: string
@@ -59,7 +60,7 @@ jobs:
       fail-fast: false
       max-parallel: 5
       matrix: ${{ fromJSON(needs.setup.outputs.octave) }}
-    name: Dynare ${{ matrix.dynare }} (Octave ${{ matrix.octave }})
+    name: ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v4
 
@@ -74,7 +75,7 @@ jobs:
           image: ${{ matrix.image }}
           suite: ${{ matrix.suite }}
           excludes: ${{ matrix.excludes }}
-          artifact-name: testsuite-${{ matrix.dynare }}-octave-${{ matrix.octave }}
+          artifact-name: testsuite-${{ matrix.artifact }}
 
   matlab:
     needs: setup
@@ -86,7 +87,7 @@ jobs:
       # Run one image at a time on the self-hosted runner (disk space, license seats)
       max-parallel: 1
       matrix: ${{ fromJSON(needs.setup.outputs.matlab) }}
-    name: Dynare ${{ matrix.dynare }} (MATLAB ${{ matrix.matlab }})
+    name: ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v4
 
@@ -96,5 +97,5 @@ jobs:
           image: ${{ matrix.image }}
           suite: ${{ matrix.suite }}
           excludes: ${{ matrix.excludes }}
-          artifact-name: testsuite-${{ matrix.dynare }}-matlab-${{ matrix.matlab }}
+          artifact-name: testsuite-${{ matrix.artifact }}
           mlm-license-file: ${{ secrets.MLM_LICENSE_FILE }}

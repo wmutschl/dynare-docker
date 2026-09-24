@@ -1,14 +1,18 @@
 #!/bin/bash
 # Runs the Dynare testsuite inside a dynare/dynare container.
 # Usage: run-testsuite.sh <matlab|octave> [space-separated test names to exclude]
-# Logs are copied to /home/matlab/artifacts (mounted from the host).
+# Environment variables:
+#   DYNARE_ROOT     Dynare source/build tree (default: $HOME/dynare, i.e. /home/matlab/dynare or /home/dynare/dynare)
+#   ARTIFACTS_DIR   where the logs are copied to (default: /artifacts, mounted from the host)
+#   MESON_TEST_ARGS extra arguments for "meson test", e.g. "--suite deterministic_simulations" (Dynare >= 6 only)
 set -uo pipefail
 
 suite=$1
 excludes=${2:-}
-artifacts=/home/matlab/artifacts
+artifacts=${ARTIFACTS_DIR:-/artifacts}
 mkdir -p "${artifacts}"
-cd /home/matlab/dynare || exit 1
+cd "${DYNARE_ROOT:-${HOME}/dynare}" || exit 1
+read -r -a extra_args <<< "${MESON_TEST_ARGS:-}"
 
 if [ -f meson.build ]; then
     # Dynare >= 6: meson testsuite
@@ -25,9 +29,9 @@ if [ -f meson.build ]; then
             done
             if [ "${skip}" = true ]; then echo "Excluding test: ${t}"; else selected+=("${t}"); fi
         done
-        meson test -C "${build_dir}" --num-processes "$(nproc)" --print-errorlogs "${selected[@]}"
+        meson test -C "${build_dir}" --num-processes "$(nproc)" --print-errorlogs "${extra_args[@]}" "${selected[@]}"
     else
-        meson test -C "${build_dir}" --num-processes "$(nproc)" --print-errorlogs
+        meson test -C "${build_dir}" --num-processes "$(nproc)" --print-errorlogs "${extra_args[@]}"
     fi
     rc=$?
     cp "${build_dir}/meson-logs/testlog.txt" "${artifacts}/" 2>/dev/null

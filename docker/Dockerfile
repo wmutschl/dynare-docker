@@ -24,7 +24,9 @@
 #    Econometrics_Toolbox Parallel_Computing_Toolbox Control_System_Toolbox Global_Optimization_Toolbox      #
 #  - with Octave including the following packages (using Ubuntu packages):                                   #
 #    octave-control octave-econometrics octave-io octave-statistics octave-struct octave-parallel            #
-#    (plus the datatypes package from Octave Forge for Dynare >= 7, which is not packaged in Ubuntu 24.04)   #
+#    NOTE: Dynare >= 7 needs the Octave "datatypes" package, which requires Octave >= 9.1.0 and is not       #
+#    available for the Octave 8.4.0 of Ubuntu 24.04. Hence Dynare 7.x can only be used with MATLAB in these  #
+#    images; use the Octave-only images (Dockerfile.octave, tags X.Y-octave) for Dynare 7.x with Octave.     #
 # It also renames the GCC libraries of MATLAB (similar to the matlab-support package) to avoid conflicts     #
 # with the system libraries and puts Dynare on the MATLAB and Octave search paths.                           #
 #                                                                                                            #
@@ -72,11 +74,6 @@ ARG ADDITIONAL_APT_PACKAGES="unzip"
 
 # MATLAB install location of the base image
 ARG MATLAB_INSTALL_LOCATION="/opt/matlab/${MATLAB_RELEASE}"
-
-# Candidate versions of the Octave Forge "datatypes" package (required by Dynare >= 7 under Octave).
-# They are tried in order and the first one accepted by the Octave version of the image is kept
-# (recent releases require a newer Octave than the 8.4.0 shipped by Ubuntu 24.04).
-ARG OCTAVE_DATATYPES_VERSIONS="1.0.9 1.0.8 1.0.7 1.0.6 1.0.5 1.0.4 1.0.3 1.0.2 1.0.1 1.0.0"
 
 # Run a quick Dynare example with Octave at the end of the build (needs no license)
 ARG SMOKE_TEST=true
@@ -223,23 +220,25 @@ for tool in gcc g++ gfortran; do
 done
 EOF
 
-# Dynare >= 7 requires the Octave Forge "datatypes" package, which is not packaged in Ubuntu 24.04.
-# Install it globally (so that it also works when $HOME is not /home/matlab, e.g. with Singularity/Apptainer).
+# Dynare >= 7 requires the Octave "datatypes" package. Every release of it requires Octave >= 9.1.0, so it cannot be
+# installed with the Octave 8.4.0 of Ubuntu 24.04 (releases 1.0.1-1.0.9 and 1.2.0 were tried). Install the distribution
+# package if the base image provides it (newer Ubuntu releases), otherwise mark Octave as unsupported in this image.
 RUN <<'EOF'
 set -e
 case "${DYNARE_RELEASE}" in
     4.*|5.*|6.*) exit 0 ;;
 esac
-for version in ${OCTAVE_DATATYPES_VERSIONS}; do
-    url="https://github.com/pr0m1th3as/datatypes/archive/refs/tags/release-${version}.tar.gz"
-    echo "Trying datatypes ${version} from ${url}"
-    if octave --no-gui --no-init-file --eval "pkg install -global '${url}'"; then
-        octave --no-gui --no-init-file --eval "pkg load datatypes; pkg list"
-        exit 0
-    fi
-done
-echo "Error: none of the datatypes versions (${OCTAVE_DATATYPES_VERSIONS}) could be installed for $(octave --version | head -n 1)"
-exit 1
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+if apt-cache show octave-datatypes > /dev/null 2>&1; then
+    apt-get install --no-install-recommends --yes octave-datatypes
+else
+    OCTAVE_VERSION=$(octave --no-gui --no-init-file --eval "disp(version)" 2>/dev/null | tail -n 1)
+    echo "Warning: Dynare ${DYNARE_RELEASE} cannot be used with Octave ${OCTAVE_VERSION} in this image (the datatypes package needs Octave >= 9.1.0). Use MATLAB or the dynare/dynare:${DYNARE_RELEASE}-octave image." \
+        | tee /etc/dynare-octave-unsupported
+fi
+apt-get clean
+rm -rf /var/lib/apt/lists/*
 EOF
 
 # Rename the GCC libraries shipped with MATLAB to avoid conflicts with the system libraries
@@ -319,6 +318,11 @@ USER matlab
 RUN <<'EOF'
 set -e
 if [ "${SMOKE_TEST}" != "true" ]; then
+    exit 0
+fi
+if [ -f /etc/dynare-octave-unsupported ]; then
+    cat /etc/dynare-octave-unsupported
+    echo "Skipping the Octave smoke test"
     exit 0
 fi
 cd /home/matlab/dynare/examples

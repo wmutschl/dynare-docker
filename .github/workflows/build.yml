@@ -2,7 +2,7 @@ name: Build Docker images
 
 # Builds the dynare/dynare images listed in versions.json from docker/Dockerfile and pushes them to Docker Hub.
 # - schedule:          rebuild all "monthly" entries on the 21st of each month (picks up base image updates)
-# - workflow_dispatch: build a selection (monthly, all, latest, or e.g. "7.2,6.5" or "6.1-R2023b")
+# - workflow_dispatch: build a selection (monthly, all, latest, or e.g. "7.2,6.5", "6.1-R2023b" or "7.2-octave")
 # - pull_request/push: build the latest entry without pushing, to validate changes to the Dockerfile
 
 on:
@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       dynare:
-        description: 'Images to build: monthly, all, latest, or comma-separated Dynare versions (optionally with MATLAB release, e.g. 6.1-R2023b)'
+        description: 'Images to build: monthly, all, latest, or comma-separated Dynare versions, optionally with MATLAB release or -octave (e.g. 7.2, 6.1-R2023b, 7.2-octave)'
         required: true
         default: 'monthly'
         type: string
@@ -73,11 +73,11 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
-    name: Dynare ${{ matrix.dynare }} (MATLAB ${{ matrix.matlab }})
+    name: ${{ matrix.name }}
     steps:
       - uses: actions/checkout@v4
 
-      # The images are large (MATLAB + toolboxes + TeX Live, ~20 GB unpacked), so free up space on the runner
+      # The MATLAB-based images are large (MATLAB + toolboxes + TeX Live, ~20 GB unpacked), so free up space on the runner
       - name: Free disk space
         run: |
           df -h /
@@ -103,11 +103,10 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: docker
+          file: ${{ matrix.file }}
           pull: true
           push: ${{ needs.setup.outputs.push == 'true' }}
-          build-args: |
-            DYNARE_RELEASE=${{ matrix.dynare }}
-            MATLAB_RELEASE=${{ matrix.matlab }}
+          build-args: ${{ matrix.build_args }}
           tags: ${{ matrix.tags }}
 
       - name: Show image size

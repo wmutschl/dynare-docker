@@ -6,29 +6,49 @@ To minimize maintenance efforts while ensuring high levels of security, reliabil
 
 ## Supported tags
 
+### MATLAB and Octave images
+
 Each image is available under three tags: `X.Y` (e.g. `7.2`), `X.Y-<MATLAB release>` (e.g. `7.2-R2026a`) and a dated snapshot `X.Y-<MATLAB release>-<YYYY-MM-DD>` of each monthly build.
 
-| Tags             | Dynare Version | MATLAB® Version | Octave Version | Operating System | Base Image              |
-|------------------|----------------|-----------------|----------------|------------------|-------------------------|
-| latest, 7.2      | 7.2            | R2026a          | 8.4.0          | Ubuntu 24.04     | mathworks/matlab:R2026a |
-| 7.1              | 7.1            | R2026a          | 8.4.0          | Ubuntu 24.04     | mathworks/matlab:R2026a |
-| 7.0              | 7.0            | R2025b          | 8.4.0          | Ubuntu 24.04     | mathworks/matlab:R2025b |
-| 6.5              | 6.5            | R2025b          | 8.4.0          | Ubuntu 24.04     | mathworks/matlab:R2025b |
-| 6.4              | 6.4            | R2025a          | 8.4.0          | Ubuntu 24.04     | mathworks/matlab:R2025a |
-| 6.3              | 6.3            | R2024b          | 8.4.0          | Ubuntu 24.04     | mathworks/matlab:R2024b |
-| 6.2              | 6.2            | R2024b          | 8.4.0          | Ubuntu 24.04     | mathworks/matlab:R2024b |
-| 6.1              | 6.1            | R2024a          | 8.4.0          | Ubuntu 24.04     | mathworks/matlab:R2024a |
-| 6.0              | 6.0            | R2023b          | 8.4.0          | Ubuntu 24.04     | mathworks/matlab:R2023b |
-| 5.5              | 5.5            | R2023b          | 8.4.0          | Ubuntu 24.04     | mathworks/matlab:R2023b |
-| 5.4              | 5.4            | R2023a          | 8.4.0          | Ubuntu 24.04     | mathworks/matlab:R2023a |
-| 5.3              | 5.3            | R2022b          | 5.2.0          | Ubuntu 20.04     | mathworks/matlab:R2022b |
-| 5.2              | 5.2            | R2022a          | 5.2.0          | Ubuntu 20.04     | mathworks/matlab:R2022a |
-| 5.1              | 5.1            | R2022a          | 5.2.0          | Ubuntu 20.04     | mathworks/matlab:R2022a |
-| 5.0              | 5.0            | R2021b          | 5.2.0          | Ubuntu 20.04     | mathworks/matlab:R2021b |
-| 4.6.4            | 4.6.4          | R2021a          | 5.2.0          | Ubuntu 20.04     | mathworks/matlab:R2021a |
+| Tags             | Dynare Version | MATLAB® Version | Octave Version | Dynare works with Octave? | Operating System | Base Image              |
+|------------------|----------------|-----------------|----------------|---------------------------|------------------|-------------------------|
+| latest, 7.2      | 7.2            | R2026a          | 8.4.0          | **no** (use `7.2-octave`) | Ubuntu 24.04     | mathworks/matlab:R2026a |
+| 7.1              | 7.1            | R2026a          | 8.4.0          | **no** (use `7.1-octave`) | Ubuntu 24.04     | mathworks/matlab:R2026a |
+| 7.0              | 7.0            | R2025b          | 8.4.0          | **no** (use `7.0-octave`) | Ubuntu 24.04     | mathworks/matlab:R2025b |
+| 6.5              | 6.5            | R2025b          | 8.4.0          | yes                       | Ubuntu 24.04     | mathworks/matlab:R2025b |
+| 6.4              | 6.4            | R2025a          | 8.4.0          | yes                       | Ubuntu 24.04     | mathworks/matlab:R2025a |
+| 6.3              | 6.3            | R2024b          | 8.4.0          | yes                       | Ubuntu 24.04     | mathworks/matlab:R2024b |
+| 6.2              | 6.2            | R2024b          | 8.4.0          | yes                       | Ubuntu 24.04     | mathworks/matlab:R2024b |
+| 6.1              | 6.1            | R2024a          | 8.4.0          | yes                       | Ubuntu 24.04     | mathworks/matlab:R2024a |
+| 6.0              | 6.0            | R2023b          | 8.4.0          | yes                       | Ubuntu 24.04     | mathworks/matlab:R2023b |
+| 5.5              | 5.5            | R2023b          | 8.4.0          | yes                       | Ubuntu 24.04     | mathworks/matlab:R2023b |
+| 5.4              | 5.4            | R2023a          | 8.4.0          | yes                       | Ubuntu 24.04     | mathworks/matlab:R2023a |
+| 5.3              | 5.3            | R2022b          | 5.2.0          | yes                       | Ubuntu 20.04     | mathworks/matlab:R2022b |
+| 5.2              | 5.2            | R2022a          | 5.2.0          | yes                       | Ubuntu 20.04     | mathworks/matlab:R2022a |
+| 5.1              | 5.1            | R2022a          | 5.2.0          | yes                       | Ubuntu 20.04     | mathworks/matlab:R2022a |
+| 5.0              | 5.0            | R2021b          | 5.2.0          | yes                       | Ubuntu 20.04     | mathworks/matlab:R2021b |
+| 4.6.4            | 4.6.4          | R2021a          | 5.2.0          | yes                       | Ubuntu 20.04     | mathworks/matlab:R2021a |
 
-Dynare 6.x and 7.x images are rebuilt monthly; the 4.6.4 and 5.x images are no longer rebuilt regularly (their Ubuntu 20.04 base images are not updated anymore by MathWorks).
-Octave is installed from the official Ubuntu repositories. Octave 8.4.0 (Ubuntu 24.04) is supported by all Dynare 6.x and 7.x releases. For Dynare 7.x, the Octave Forge `datatypes` package (required by Dynare but not packaged in Ubuntu 24.04) is additionally installed from Octave Forge.
+Dynare 6.x and 7.x images are rebuilt monthly; the 4.6.4 and 5.x images are no longer rebuilt regularly (their base images are not updated anymore by MathWorks, or were built for older Dynare releases).
+Octave is installed from the official Ubuntu repositories.
+
+**Octave and Dynare 7.x:** Dynare 7 requires the Octave `datatypes` package, and every release of that package requires Octave ⩾ 9.1.0. The MATLAB base images are based on Ubuntu 24.04, which ships Octave 8.4.0, so **Dynare 7.x cannot be used with Octave in the MATLAB images** (running `dynare` under Octave there stops with an error about the missing `datatypes` package; the image contains a note in `/etc/dynare-octave-unsupported`). Use the Octave-only images below instead.
+
+### Octave-only images (no MATLAB, no license needed)
+
+| Tags                      | Dynare Version | Octave Version | Operating System | Base Image   |
+|---------------------------|----------------|----------------|------------------|--------------|
+| latest-octave, 7.2-octave | 7.2            | 11.1.0         | Ubuntu 26.04     | ubuntu:26.04 |
+| 7.1-octave                | 7.1            | 11.1.0         | Ubuntu 26.04     | ubuntu:26.04 |
+| 7.0-octave                | 7.0            | 11.1.0         | Ubuntu 26.04     | ubuntu:26.04 |
+
+These images are built from [Dockerfile.octave](Dockerfile.octave) with Octave and all Octave packages (`datatypes`, `statistics`, `control`, `io`, `optim`, ...) from the official Ubuntu 26.04 repositories. They are much smaller than the MATLAB images, and each monthly build is also available as `X.Y-octave-<YYYY-MM-DD>`. Dynare lives in `/home/dynare/dynare` and the default user is `dynare`.
+
+**Known problem:** `examples/estimation/rbc_irf_matching.mod` of Dynare 7.1 fails under Octave (it sets the legend property `NumColumns`, which Octave does not support); this is a Dynare issue, not an issue of the images.
+
+### Windows and macOS
+
+There are no Windows or macOS containers: Docker cannot run macOS containers, and MathWorks provides no MATLAB container images for Windows. Use the official installers from [dynare.org](https://www.dynare.org/download/); they are tested automatically for Dynare 7.0 to 7.2 on Windows (MATLAB and Octave) and macOS (MATLAB) in the [dynare-docker repository](https://github.com/wmutschl/dynare-docker). Note that the Dynare package for Windows requires one specific Octave version (11.1.0 for Dynare 7.0 and 7.1, 11.3.0 for Dynare 7.2), and the Dynare package for macOS supports MATLAB only (use `brew install dynare` for Octave on macOS).
 
 ## How to interact with the container
 
@@ -51,8 +71,13 @@ Where to find the examples: Dynare 7 reorganized its examples into subfolders, e
 
 ### Run Dynare with Octave in an interactive command prompt
 
+For Dynare 7.x use the Octave-only image (its default command starts Octave):
 ```sh
-docker run -it --rm --shm-size=512M --entrypoint octave dynare/dynare:latest
+docker run -it --rm --shm-size=512M dynare/dynare:latest-octave
+```
+For Dynare 6.x and older, you can also use Octave in the MATLAB image:
+```sh
+docker run -it --rm --shm-size=512M --entrypoint octave dynare/dynare:6.5
 ```
 and at the Octave prompt:
 ```matlab
@@ -63,8 +88,8 @@ dynare collard_2001_theoretical_moments
 ### Run Dynare with Octave non-interactively
 
 ```sh
-docker run --rm --shm-size=512M --entrypoint octave dynare/dynare:latest \
-  --eval "cd /home/matlab/dynare/examples/stochastic_simulations; dynare collard_2001_theoretical_moments console nograph"
+docker run --rm --shm-size=512M dynare/dynare:latest-octave \
+  octave --eval "cd /home/dynare/dynare/examples/stochastic_simulations; dynare collard_2001_theoretical_moments console nograph"
 ```
 
 ### Run Dynare with MATLAB non-interactively in batch mode
@@ -105,8 +130,7 @@ docker run --rm --shm-size=512M \
   -e MLM_LICENSE_FILE=27000@matlab-campus.uni-tuebingen.de \
   --entrypoint /bin/bash dynare/dynare:latest -c "\
     cd /home/matlab/dynare/examples/stochastic_simulations && \
-    matlab -batch 'dynare collard_2001_theoretical_moments console' && \
-    octave --eval 'dynare collard_2001_theoretical_moments console nograph'"
+    matlab -batch 'dynare collard_2001_theoretical_moments console'"
 ```
 
 ### Run MATLAB Desktop using X11
@@ -121,7 +145,7 @@ The Desktop window of MATLAB will open on your machine. Note that the command ab
 
 On HPC clusters your home directory usually replaces the one of the container, so the startup files in `/home/matlab` are not read.
 For MATLAB, Dynare is nevertheless on the search path through the `MATLABPATH` environment variable of the image.
-For Octave, add the path explicitly, e.g. `octave --eval "addpath /home/matlab/dynare/matlab; dynare mymodel"`.
+For Octave in the MATLAB images, add the path explicitly, e.g. `octave --eval "addpath /home/matlab/dynare/matlab; dynare mymodel"`; the Octave-only images put Dynare on the path in the system-wide Octave startup file, so nothing needs to be done there.
 
 ## Additional information
 
@@ -170,6 +194,7 @@ The images on [Docker Hub](https://hub.docker.com/r/dynare/dynare) are built wit
 ```sh
 docker build --build-arg MATLAB_RELEASE=R2026a --build-arg DYNARE_RELEASE=7.2 -t dynare/dynare:7.2 .
 docker build --build-arg MATLAB_RELEASE=R2025b --build-arg DYNARE_RELEASE=6.5 -t dynare/dynare:6.5 .
+docker build -f Dockerfile.octave --build-arg DYNARE_RELEASE=7.2 -t dynare/dynare:7.2-octave .
 ```
 The full list of Dynare/MATLAB combinations is maintained in [versions.json](../versions.json).
 Useful build arguments besides `DYNARE_RELEASE` and `MATLAB_RELEASE` are `ADDITIONAL_PRODUCTS` (MathWorks products installed with mpm), `SMOKE_TEST=false` (skip the Octave test run at the end of the build) and `LICENSE_SERVER` (bake a network license server into a private image).

@@ -1,0 +1,155 @@
+name: Dynare installers (Windows, macOS)
+
+# There are no Docker containers for Windows and macOS: Docker cannot run macOS containers, and MathWorks provides no
+# Windows container images of MATLAB. Instead, this workflow tests the official Dynare packages from dynare.org on
+# GitHub-hosted Windows and macOS runners, with MATLAB installed by matlab-actions/setup-matlab (licensed automatically
+# for public repositories) and, on Windows, with the Octave version the Dynare package was compiled for.
+# The versions are listed under "installers" in versions.json.
+#
+# Octave:
+# - Windows: the Dynare package contains MEX files for one specific Octave version (octave_windows in versions.json).
+# - macOS: the Dynare package supports MATLAB only; Octave users install Dynare with Homebrew (brew install dynare),
+#   which only provides the latest release and is not tested here.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # At 06:00 on Monday
+  workflow_dispatch:
+    inputs:
+      dynare:
+        description: 'Versions to test: monthly, all, latest, or comma-separated Dynare versions (e.g. 7.2)'
+        required: true
+        default: 'monthly'
+        type: string
+      platforms:
+        description: 'Platforms to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - windows
+          - macos
+  pull_request:
+    paths:
+      - '.github/workflows/installers.yml'
+      - '.github/scripts/run_dynare_examples.m'
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - '.github/workflows/installers.yml'
+      - '.github/scripts/run_dynare_examples.m'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      octave: ${{ steps.matrix.outputs.octave }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute matrix
+        id: matrix
+        run: |
+          case "${{ github.event_name }}" in
+            workflow_dispatch) selection="${{ inputs.dynare }}"; platforms="${{ inputs.platforms }}" ;;
+            schedule)          selection=monthly; platforms=all ;;
+            *)                 selection=latest; platforms=all ;;
+          esac
+          matrix=$(python3 .github/scripts/matrix.py installers "${selection}" "${platforms}")
+          # Octave is only tested on Windows (the macOS package of Dynare does not support Octave)
+          if [ "${platforms}" = macos ]; then
+            octave='{"include":[]}'
+          else
+            octave=$(python3 .github/scripts/matrix.py installers "${selection}" windows)
+          fi
+          echo "matrix=${matrix}" >> "$GITHUB_OUTPUT"
+          echo "octave=${octave}" >> "$GITHUB_OUTPUT"
+          echo "${matrix}" | python3 -m json.tool
+
+  matlab:
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    name: Dynare ${{ matrix.dynare }} (MATLAB ${{ matrix.matlab }}, ${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download and extract Dynare (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $version = "${{ matrix.dynare }}"
+          curl.exe --fail -L "https://www.dynare.org/release/windows-7z/dynare-$version-win.7z" -o "dynare-$version-win.7z"
+          7z x "dynare-$version-win.7z" "-o${{ runner.temp }}" -y | Out-Null
+          $matlabDir = Join-Path "${{ runner.temp }}" "dynare-$version\matlab"
+          if (-not (Test-Path (Join-Path $matlabDir "dynare.m"))) { throw "dynare.m not found in $matlabDir" }
+          "DYNARE_MATLAB_DIR=$matlabDir" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Download and extract Dynare (macOS)
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          version="${{ matrix.dynare }}"
+          case "$(uname -m)" in
+            arm64) arch=arm64 ;;
+            *)     arch=x86_64 ;;
+          esac
+          curl --fail -L "https://www.dynare.org/release/macos-${arch}/dynare-${version}-${arch}.pkg" -o dynare.pkg
+          # Extract the package without installing it (no sudo needed)
+          pkgutil --expand dynare.pkg "${RUNNER_TEMP}/dynare-pkg"
+          mkdir -p "${RUNNER_TEMP}/dynare"
+          find "${RUNNER_TEMP}/dynare-pkg" -name Payload -exec tar -xzf {} -C "${RUNNER_TEMP}/dynare" \;
+          dynare_m=$(find "${RUNNER_TEMP}/dynare" -path '*/matlab/dynare.m' | head -n 1)
+          [ -n "${dynare_m}" ] || { echo "dynare.m not found in the package"; exit 1; }
+          echo "DYNARE_MATLAB_DIR=$(dirname "${dynare_m}")" >> "$GITHUB_ENV"
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: ${{ matrix.matlab }}
+          products: Symbolic_Math_Toolbox Statistics_and_Machine_Learning_Toolbox Optimization_Toolbox Econometrics_Toolbox Parallel_Computing_Toolbox Control_System_Toolbox Global_Optimization_Toolbox
+          cache: true
+
+      - name: Run Dynare examples with MATLAB
+        uses: matlab-actions/run-command@v2
+        with:
+          command: addpath('.github/scripts'); run_dynare_examples(getenv('DYNARE_MATLAB_DIR'));
+
+  octave-windows:
+    needs: setup
+    if: fromJSON(needs.setup.outputs.octave).include[0] != null
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.setup.outputs.octave) }}
+    name: Dynare ${{ matrix.dynare }} (Octave ${{ matrix.octave_windows }}, windows)
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Dynare and Octave
+        shell: pwsh
+        run: |
+          $version = "${{ matrix.dynare }}"
+          $octave = "${{ matrix.octave_windows }}"
+          curl.exe --fail -L "https://www.dynare.org/release/windows-7z/dynare-$version-win.7z" -o "dynare-$version-win.7z"
+          7z x "dynare-$version-win.7z" "-o${{ runner.temp }}" -y | Out-Null
+          curl.exe --fail -L "https://ftpmirror.gnu.org/gnu/octave/windows/octave-$octave-w64.7z" -o "octave-$octave-w64.7z"
+          7z x "octave-$octave-w64.7z" "-o${{ runner.temp }}" -y | Out-Null
+          $octaveCli = Get-ChildItem -Path (Join-Path "${{ runner.temp }}" "octave-$octave-w64") -Recurse -Filter "octave-cli.exe" | Select-Object -First 1
+          if (-not $octaveCli) { throw "octave-cli.exe not found" }
+          "OCTAVE_CLI=$($octaveCli.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "DYNARE_MATLAB_DIR=$(Join-Path "${{ runner.temp }}" "dynare-$version\matlab")" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Run Dynare examples with Octave
+        shell: pwsh
+        run: |
+          # The Octave distribution for Windows ships the Forge packages (statistics, datatypes, ...) pre-installed
+          & $env:OCTAVE_CLI --no-gui --eval "pkg list; addpath('.github/scripts'); run_dynare_examples(getenv('DYNARE_MATLAB_DIR'));"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

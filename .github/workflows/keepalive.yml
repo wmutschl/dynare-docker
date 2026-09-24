@@ -19,7 +19,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for workflow in build.yml testsuite.yml keepalive.yml; do
+          for workflow in build.yml testsuite.yml installers.yml keepalive.yml; do
             gh api --method PUT "repos/${{ github.repository }}/actions/workflows/${workflow}/enable"
             echo "Enabled ${workflow}"
           done

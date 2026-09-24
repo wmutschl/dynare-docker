@@ -50,7 +50,7 @@ runs:
           -e MLM_LICENSE_FILE \
           -e TERM=xterm-256color \
           -v "${{ github.workspace }}/.github/scripts:/scripts:ro" \
-          -v "${{ runner.temp }}/artifacts:/home/matlab/artifacts" \
+          -v "${{ runner.temp }}/artifacts:/artifacts" \
           "${{ inputs.image }}" \
           /scripts/run-testsuite.sh "${{ inputs.suite }}" "${{ inputs.excludes }}"
 
