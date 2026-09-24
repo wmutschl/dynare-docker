@@ -76,7 +76,7 @@ jobs:
       matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
     name: Dynare ${{ matrix.dynare }} (MATLAB ${{ matrix.matlab }}, ${{ matrix.platform }})
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 120
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -145,7 +145,7 @@ jobs:
       matrix: ${{ fromJSON(needs.setup.outputs.octave) }}
     name: Dynare ${{ matrix.dynare }} (Octave ${{ matrix.octave_windows }}, windows)
     runs-on: windows-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -165,7 +165,9 @@ jobs:
 
       - name: Run Dynare examples with Octave
         shell: pwsh
+        # Fail fast if Octave hangs (e.g. on graphics on the headless runner)
+        timeout-minutes: 30
         run: |
           # The Octave distribution for Windows ships the Forge packages (statistics, datatypes, ...) pre-installed
-          & $env:OCTAVE_CLI --no-gui --eval "pkg list; addpath('.github/scripts'); run_dynare_examples(getenv('DYNARE_MATLAB_DIR'));"
+          & $env:OCTAVE_CLI --no-window-system --quiet --eval "pkg list; addpath('.github/scripts'); run_dynare_examples(getenv('DYNARE_MATLAB_DIR'));"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -51,6 +51,13 @@ else
     fprintf('Running Dynare %s examples with MATLAB %s\n', dynver, version);
 end
 
+% Never open figure windows: on headless CI runners (e.g. Windows) Octave's FLTK toolkit hangs when a figure
+% is created, even though the examples are run with the nograph option
+set(0, 'defaultfigurevisible', 'off');
+if is_octave && any(strcmp(available_graphics_toolkits(), 'gnuplot'))
+    graphics_toolkit('gnuplot');
+end
+
 start_dir = pwd;
 failed = {};
 skipped = {};
