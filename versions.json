@@ -1,0 +1,43 @@
+{
+  "_comment": [
+    "Single source of truth for .github/workflows/build.yml, testsuite.yml and installers.yml (via .github/scripts/matrix.py).",
+    "images:         MATLAB-based images (docker/Dockerfile) with MATLAB and Octave from the base image's Ubuntu.",
+    "                octave_supported=false: Dynare cannot be used with the Octave of that image (see octave_note); only the MATLAB testsuite runs.",
+    "octave_images:  Octave-only images (docker/Dockerfile.octave), tagged X.Y-octave; used for Dynare versions whose Octave requirements the MATLAB base images cannot meet.",
+    "installers:     official Dynare packages for Windows and macOS, tested natively on GitHub-hosted runners (no containers exist for these platforms).",
+    "schedule=monthly: rebuilt every month and tested weekly; schedule=manual: only built/tested on workflow_dispatch.",
+    "test_excludes:  meson test names (as printed by 'meson test --list' after ' / ') skipped for the given testsuite."
+  ],
+  "images": [
+    { "dynare": "7.2",   "matlab": "R2026a", "octave": "8.4.0", "ubuntu": "24.04", "latest": true, "schedule": "monthly",
+      "octave_supported": false, "octave_note": "Dynare 7 needs the Octave datatypes package, which requires Octave >= 9.1.0" },
+    { "dynare": "7.1",   "matlab": "R2026a", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly",
+      "octave_supported": false, "octave_note": "Dynare 7 needs the Octave datatypes package, which requires Octave >= 9.1.0" },
+    { "dynare": "7.0",   "matlab": "R2025b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly",
+      "octave_supported": false, "octave_note": "Dynare 7 needs the Octave datatypes package, which requires Octave >= 9.1.0" },
+    { "dynare": "6.5",   "matlab": "R2025b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "6.4",   "matlab": "R2025a", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "6.3",   "matlab": "R2024b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "6.2",   "matlab": "R2024b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "6.1",   "matlab": "R2024a", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "6.0",   "matlab": "R2023b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly",
+      "test_excludes": { "matlab": ["optimizers/fs2000_102.mod"] } },
+    { "dynare": "5.5",   "matlab": "R2023b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "manual" },
+    { "dynare": "5.4",   "matlab": "R2023a", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "manual" },
+    { "dynare": "5.3",   "matlab": "R2022b", "octave": "5.2.0", "ubuntu": "20.04", "schedule": "manual" },
+    { "dynare": "5.2",   "matlab": "R2022a", "octave": "5.2.0", "ubuntu": "20.04", "schedule": "manual" },
+    { "dynare": "5.1",   "matlab": "R2022a", "octave": "5.2.0", "ubuntu": "20.04", "schedule": "manual" },
+    { "dynare": "5.0",   "matlab": "R2021b", "octave": "5.2.0", "ubuntu": "20.04", "schedule": "manual" },
+    { "dynare": "4.6.4", "matlab": "R2021a", "octave": "5.2.0", "ubuntu": "20.04", "schedule": "manual" }
+  ],
+  "octave_images": [
+    { "dynare": "7.2", "octave": "11.1.0", "ubuntu": "26.04", "latest": true, "schedule": "monthly" },
+    { "dynare": "7.1", "octave": "11.1.0", "ubuntu": "26.04", "schedule": "monthly" },
+    { "dynare": "7.0", "octave": "11.1.0", "ubuntu": "26.04", "schedule": "monthly" }
+  ],
+  "installers": [
+    { "dynare": "7.2", "matlab": "R2026a", "octave_windows": "11.3.0", "latest": true, "schedule": "monthly" },
+    { "dynare": "7.1", "matlab": "R2026a", "octave_windows": "11.1.0", "schedule": "monthly" },
+    { "dynare": "7.0", "matlab": "R2025b", "octave_windows": "11.1.0", "schedule": "monthly" }
+  ]
+}

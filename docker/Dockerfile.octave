@@ -1,0 +1,154 @@
+# syntax=docker/dockerfile:1
+# Copyright © 2026 Dynare Team
+#
+# This file is part of Dynare.
+#
+# Dynare is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Dynare is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Dynare.  If not, see <https://www.gnu.org/licenses/>.
+
+##############################################################################################################
+# INFORMATION:                                                                                               #
+# This Dockerfile installs Dynare (https://dynare.org) with GNU Octave only (no MATLAB, no license needed).  #
+#                                                                                                            #
+# Why a separate image? Dynare >= 7 requires the Octave "datatypes" package, and every release of that      #
+# package requires Octave >= 9.1.0. The MATLAB base images run Ubuntu 24.04, which ships Octave 8.4.0, so    #
+# Dynare 7.x cannot be used with Octave in the MATLAB-based images. Ubuntu 26.04 ships Octave 11.1.0 with    #
+# the datatypes and statistics packages, which is supported by Dynare 7.0, 7.1 and 7.2.                      #
+##############################################################################################################
+
+ARG UBUNTU_RELEASE=26.04
+ARG DYNARE_RELEASE=7.2
+
+FROM ubuntu:${UBUNTU_RELEASE}
+
+ARG UBUNTU_RELEASE
+ARG DYNARE_RELEASE
+
+# Run a quick Dynare example with Octave at the end of the build
+ARG SMOKE_TEST=true
+
+LABEL org.opencontainers.image.title="Dynare (Octave)" \
+      org.opencontainers.image.description="Dynare with GNU Octave for macroeconomic modeling" \
+      org.opencontainers.image.url="https://www.dynare.org" \
+      org.opencontainers.image.source="https://github.com/wmutschl/dynare-docker" \
+      org.opencontainers.image.vendor="Dynare Team" \
+      org.opencontainers.image.licenses="GPL-3.0-or-later" \
+      dynare.version="${DYNARE_RELEASE}" \
+      ubuntu.version="${UBUNTU_RELEASE}"
+
+# Install the build and runtime dependencies of Dynare and keep this layer small (apt cache cleanup)
+RUN <<'EOF'
+set -e
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install --no-install-recommends --yes \
+    ca-certificates \
+    sudo \
+    gcc \
+    g++ \
+    gfortran \
+    meson \
+    pkgconf \
+    flex \
+    libfl-dev \
+    bison \
+    git \
+    git-lfs \
+    libboost-graph-dev \
+    libgsl-dev \
+    libmatio-dev \
+    libslicot-dev \
+    libslicot-pic \
+    libslicot64-pic \
+    libsuitesparse-dev \
+    texlive \
+    texlive-publishers \
+    texlive-latex-extra \
+    texlive-fonts-extra \
+    texlive-font-utils \
+    texlive-latex-recommended \
+    texlive-science \
+    texlive-plain-generic \
+    lmodern \
+    cm-super \
+    tex-gyre \
+    latexmk \
+    x13as \
+    octave \
+    octave-dev \
+    octave-datatypes \
+    octave-statistics \
+    octave-control \
+    octave-econometrics \
+    octave-io \
+    octave-optim \
+    octave-struct \
+    octave-parallel \
+    gnuplot-nox \
+    fonts-freefont-otf \
+    ghostscript \
+    epstool
+apt-get clean
+apt-get autoremove --yes
+rm -rf /var/lib/apt/lists/*
+EOF
+
+# Create an unprivileged user (with passwordless sudo, like the MATLAB-based images)
+RUN <<'EOF'
+set -e
+useradd --create-home --shell /bin/bash dynare
+echo "dynare ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/dynare
+chmod 0440 /etc/sudoers.d/dynare
+EOF
+
+# Get and compile the Dynare sources for Octave
+USER dynare
+WORKDIR /home/dynare
+RUN git lfs install \
+    && git clone --depth 1 --branch ${DYNARE_RELEASE} --recurse-submodules https://git.dynare.org/dynare/dynare.git
+
+RUN <<'EOF'
+set -e
+cd /home/dynare/dynare
+meson setup -Dbuild_for=octave -Dbuildtype=debugoptimized build-octave
+meson compile -C build-octave
+EOF
+
+# Put Dynare on the Octave search path.
+# Octave also reads the system-wide startup file, so Dynare is found when $HOME is replaced (Singularity/Apptainer).
+USER root
+RUN echo "addpath /home/dynare/dynare/matlab" >> /usr/share/octave/site/m/startup/octaverc
+
+# Smoke test: run a small example with Octave
+USER dynare
+RUN <<'EOF'
+set -e
+if [ "${SMOKE_TEST}" != "true" ]; then
+    exit 0
+fi
+cd /home/dynare/dynare/examples
+MODFILE=$(find . \( -name example1.mod -o -name collard_2001_theoretical_moments.mod \) | head -n 1)
+if [ -z "${MODFILE}" ]; then
+    echo "Warning: no example found for the smoke test, skipping it"
+    exit 0
+fi
+SMOKE_DIR=$(mktemp -d)
+cp "${MODFILE}" "${SMOKE_DIR}/"
+cd "${SMOKE_DIR}"
+octave --no-gui --eval "dynare $(basename "${MODFILE}") console nograph"
+cd /home/dynare
+rm -rf "${SMOKE_DIR}"
+EOF
+
+WORKDIR /home/dynare
+CMD ["octave", "--no-gui"]

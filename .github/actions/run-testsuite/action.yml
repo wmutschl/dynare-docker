@@ -1,0 +1,63 @@
+name: Run Dynare testsuite in a container
+description: Pulls a dynare/dynare image, runs the MATLAB or Octave testsuite inside it and uploads the logs.
+
+inputs:
+  image:
+    description: Image to test, e.g. dynare/dynare:7.2-R2026a
+    required: true
+  suite:
+    description: matlab or octave
+    required: true
+  excludes:
+    description: Space-separated meson test names to skip
+    required: false
+    default: ''
+  artifact-name:
+    description: Name of the uploaded artifact with the test logs
+    required: true
+  mlm-license-file:
+    description: MATLAB license (port@hostname or path), only needed for the MATLAB testsuite
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Pull image
+      shell: bash
+      run: docker pull "${{ inputs.image }}"
+
+    - name: Prepare artifacts directory
+      shell: bash
+      run: |
+        rm -rf "${{ runner.temp }}/artifacts"
+        mkdir -p "${{ runner.temp }}/artifacts"
+        chmod 777 "${{ runner.temp }}/artifacts"
+
+    - name: Run ${{ inputs.suite }} testsuite
+      shell: bash
+      env:
+        MLM_LICENSE_FILE: ${{ inputs.mlm-license-file }}
+      run: |
+        if [ "${{ inputs.suite }}" = matlab ] && [ -z "${MLM_LICENSE_FILE}" ]; then
+          echo "::error::The MATLAB testsuite needs a license: set the MLM_LICENSE_FILE secret (e.g. 27000@license-server)"
+          exit 1
+        fi
+        # The entrypoint of the MathWorks base images passes custom commands to matlab, so bypass it
+        docker run --rm \
+          --entrypoint /bin/bash \
+          --shm-size=512M \
+          -e MLM_LICENSE_FILE \
+          -e TERM=xterm-256color \
+          -v "${{ github.workspace }}/.github/scripts:/scripts:ro" \
+          -v "${{ runner.temp }}/artifacts:/artifacts" \
+          "${{ inputs.image }}" \
+          /scripts/run-testsuite.sh "${{ inputs.suite }}" "${{ inputs.excludes }}"
+
+    - name: Upload test logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ runner.temp }}/artifacts/
+        if-no-files-found: warn
