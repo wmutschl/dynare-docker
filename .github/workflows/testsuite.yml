@@ -1,0 +1,100 @@
+name: Dynare testsuite
+
+# Runs the Dynare testsuite inside the published dynare/dynare images (see versions.json).
+# - Octave: GitHub-hosted runners, no license needed
+# - MATLAB: self-hosted runner with the labels [self-hosted, linux, matlab] that has access to a MATLAB license.
+#   The license is passed to the container via the MLM_LICENSE_FILE secret (e.g. 27000@license-server),
+#   see README.md#self-hosted-runner-for-matlab.
+
+on:
+  schedule:
+    - cron: '0 0 * * 1' # At 00:00 on Monday
+  workflow_dispatch:
+    inputs:
+      dynare:
+        description: 'Images to test: monthly, all, latest, or comma-separated Dynare versions (optionally with MATLAB release)'
+        required: true
+        default: 'monthly'
+        type: string
+      suites:
+        description: 'Testsuites to run'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - octave
+          - matlab
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      octave: ${{ steps.matrix.outputs.octave }}
+      matlab: ${{ steps.matrix.outputs.matlab }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute test matrices
+        id: matrix
+        run: |
+          selection="${{ inputs.dynare || 'monthly' }}"
+          suites="${{ inputs.suites || 'both' }}"
+          for suite in octave matlab; do
+            if [ "${suites}" = both ] || [ "${suites}" = "${suite}" ]; then
+              matrix=$(python3 .github/scripts/matrix.py test "${selection}" "${suite}")
+            else
+              matrix='{"include":[]}'
+            fi
+            echo "${suite}=${matrix}" >> "$GITHUB_OUTPUT"
+            echo "${suite}: ${matrix}"
+          done
+
+  octave:
+    needs: setup
+    if: fromJSON(needs.setup.outputs.octave).include[0] != null
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix: ${{ fromJSON(needs.setup.outputs.octave) }}
+    name: Dynare ${{ matrix.dynare }} (Octave ${{ matrix.octave }})
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
+          docker system prune --all --force
+
+      - name: Run testsuite
+        uses: ./.github/actions/run-testsuite
+        with:
+          image: ${{ matrix.image }}
+          suite: ${{ matrix.suite }}
+          excludes: ${{ matrix.excludes }}
+          artifact-name: testsuite-${{ matrix.dynare }}-octave-${{ matrix.octave }}
+
+  matlab:
+    needs: setup
+    if: fromJSON(needs.setup.outputs.matlab).include[0] != null
+    runs-on: [self-hosted, linux, matlab]
+    timeout-minutes: 720
+    strategy:
+      fail-fast: false
+      # Run one image at a time on the self-hosted runner (disk space, license seats)
+      max-parallel: 1
+      matrix: ${{ fromJSON(needs.setup.outputs.matlab) }}
+    name: Dynare ${{ matrix.dynare }} (MATLAB ${{ matrix.matlab }})
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run testsuite
+        uses: ./.github/actions/run-testsuite
+        with:
+          image: ${{ matrix.image }}
+          suite: ${{ matrix.suite }}
+          excludes: ${{ matrix.excludes }}
+          artifact-name: testsuite-${{ matrix.dynare }}-matlab-${{ matrix.matlab }}
+          mlm-license-file: ${{ secrets.MLM_LICENSE_FILE }}

@@ -1,0 +1,4 @@
+self-hosted-runner:
+  # Label of the self-hosted runner used for the MATLAB testsuite
+  labels:
+    - matlab

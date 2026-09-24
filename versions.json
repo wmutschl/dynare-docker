@@ -1,0 +1,22 @@
+{
+  "_comment": "Single source of truth for the images built by .github/workflows/build.yml and tested by .github/workflows/testsuite.yml. schedule=monthly: rebuilt every month and tested weekly; schedule=manual: only built/tested on workflow_dispatch. test_excludes lists meson test names (as printed by 'meson test --list' after ' / ') that are skipped for the given testsuite.",
+  "images": [
+    { "dynare": "7.2",   "matlab": "R2026a", "octave": "8.4.0", "ubuntu": "24.04", "latest": true, "schedule": "monthly" },
+    { "dynare": "7.1",   "matlab": "R2026a", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "7.0",   "matlab": "R2025b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "6.5",   "matlab": "R2025b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "6.4",   "matlab": "R2025a", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "6.3",   "matlab": "R2024b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "6.2",   "matlab": "R2024b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "6.1",   "matlab": "R2024a", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly" },
+    { "dynare": "6.0",   "matlab": "R2023b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "monthly",
+      "test_excludes": { "matlab": ["optimizers/fs2000_102.mod"] } },
+    { "dynare": "5.5",   "matlab": "R2023b", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "manual" },
+    { "dynare": "5.4",   "matlab": "R2023a", "octave": "8.4.0", "ubuntu": "24.04", "schedule": "manual" },
+    { "dynare": "5.3",   "matlab": "R2022b", "octave": "5.2.0", "ubuntu": "20.04", "schedule": "manual" },
+    { "dynare": "5.2",   "matlab": "R2022a", "octave": "5.2.0", "ubuntu": "20.04", "schedule": "manual" },
+    { "dynare": "5.1",   "matlab": "R2022a", "octave": "5.2.0", "ubuntu": "20.04", "schedule": "manual" },
+    { "dynare": "5.0",   "matlab": "R2021b", "octave": "5.2.0", "ubuntu": "20.04", "schedule": "manual" },
+    { "dynare": "4.6.4", "matlab": "R2021a", "octave": "5.2.0", "ubuntu": "20.04", "schedule": "manual" }
+  ]
+}
